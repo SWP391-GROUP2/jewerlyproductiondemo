@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - NBJewelryBE
+name: Build and deploy ASP.Net Core app to Azure Web App - jewelryproductionBE
 
 on:
   push:
@@ -17,18 +17,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '8.x'
+          include-prerelease: true
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build "JewelryProductionMain\JewelryProduction\JewelryProduction.csproj" --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish "JewelryProductionMain\JewelryProduction\JewelryProduction.csproj"  -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
@@ -44,22 +45,21 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: .net-app
       
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_00CCA1BDAEA74E9FA275EF82492A6268 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_76090178892242FEA103E07E90E80848 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_903F869EBAC546F19BBB4D7C3EDC7141 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F6E3F3A126F74C158D944F0D3577F068 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3C8B31D58B5A42CA9AAFF742DE4AAB1E }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8A5AB24B402F40FDBACEA3465D22FC09 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: 'NBJewelryBE'
+          app-name: 'jewelryproductionBE'
           slot-name: 'Production'
           package: .
-          
