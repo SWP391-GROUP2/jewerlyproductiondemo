@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - NBJewelryFE
+ame: Build and deploy Node.js app to Azure Web App - JewelryProductionFE
 
 on:
   push:
@@ -11,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -23,15 +20,18 @@ jobs:
 
       - name: npm install, build, and test
         run: |
+          cd FrontEnd
           npm install
           npm run build --if-present
           npm run test --if-present
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: |
+          cd FrontEnd/build
+          Compress-Archive -Path * -DestinationPath ../../release.zip
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: node-app
           path: release.zip
@@ -43,29 +43,28 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: node-app
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_31255B4B3AE64543A63FE7CA3A187647 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A81D1D3F2A114389A93ECC0655AC8E00 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0964C730791A46EBA02151FD7CBBF00C }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Login to Azure
+        uses: azure/login@v1
         with:
-          app-name: 'NBJewelryFE'
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9023B337E1AE4FB6960D56CA2DF759E4 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DBD67C9D9A0145A7A98DC62DDD568C74 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A8485453A35C4235BBC0C5E3408F4C65 }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        id: deploy-to-webapp
+        with:
+          app-name: 'JewelryProductionFE'
           slot-name: 'Production'
           package: .
-          
