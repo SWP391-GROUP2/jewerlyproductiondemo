@@ -27,7 +27,7 @@ const Sidebar = () => {
       color: ["Red"],
     },
     Sapphire: {
-      color: ["Blue", "Yellow", "Pink", "Green", "Orange", "Purple"],
+      color: ["Blue"],
     },
     SideStone: {
       color: ["White", "Pink"],
@@ -58,7 +58,7 @@ const Sidebar = () => {
     const queryString = query.length ? `?${query.join("&")}` : "";
 
     try {
-      const url = `http://localhost:5266/api/Gemstones${
+      const url = `https://nbjewelrybe.azurewebsites.net/api/Gemstones${
         queryString ? "/Filter Gemstone" + queryString : ""
       }`;
       const response = await axios.get(url);
@@ -123,24 +123,6 @@ const Sidebar = () => {
             </ul>
             {selectedGemstone && (
               <>
-                <div className="gemstone-filters">
-                  <h3>Color</h3>
-                  <select
-                    value={selectedFilters.color || ""}
-                    onChange={(e) =>
-                      handleFilterChange("gemstoneColor", e.target.value)
-                    }
-                  >
-                    <option value="" disabled selected>
-                      Select Color
-                    </option>
-                    {attributes[selectedGemstone].color.map((color) => (
-                      <option key={color} value={color}>
-                        {color}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 <div className="gemstone-filters">
                   <h3>Clarity</h3>
                   <select

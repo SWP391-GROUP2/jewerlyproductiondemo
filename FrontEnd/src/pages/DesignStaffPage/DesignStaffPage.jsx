@@ -9,7 +9,7 @@ import Notify from "../../components/Alert/Alert";
 
 function DesignStaffPage() {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
-  const [currentView, setCurrentView] = useState("");
+  const [currentView, setCurrentView] = useState("orderlist");
   const [selectedItem, setSelectedItem] = useState(null);
   const [showDetailPopup, setShowDetailPopup] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -35,19 +35,15 @@ function DesignStaffPage() {
 
   const [productSamples, setProductSamples] = useState([]);
 
-
   const [selectedImages, setSelectedImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
-
-
-
 
   useEffect(() => {
     // Fetch product samples from API
     const fetchProductSamples = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5266/api/ProductSamples"
+          "https://nbjewelrybe.azurewebsites.net/api/ProductSamples"
         );
         setProductSamples(response.data);
       } catch (error) {
@@ -71,7 +67,7 @@ function DesignStaffPage() {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length + selectedImages.length > 3) {
-      alert('You can only upload up to 3 images.');
+      alert("You can only upload up to 3 images.");
       return;
     }
     const newImages = files.map((file) => URL.createObjectURL(file));
@@ -80,29 +76,34 @@ function DesignStaffPage() {
   };
 
   const handleUploadImage = async () => {
-    if(name == "") Notify.warning("Please provide design name");
-    else{
+    if (name === "") Notify.warning("Please provide design name");
+    else {
       if (selectedProductSample && imageFiles.length > 0) {
         const uploadPromises = imageFiles.map(async (file) => {
           const formData = new FormData();
-          formData.append('Image', file);
-          formData.append('DesignName', name);
-          formData.append('ProductSampleId', selectedProductSample.productSampleId);
-          formData.append('DesignStaffId', designStaffId);
-    
-          console.log("Uploading 3dDesign with data:", Object.fromEntries(formData.entries()));
-    
+          formData.append("Image", file);
+          formData.append("DesignName", name);
+          formData.append(
+            "ProductSampleId",
+            selectedProductSample.productSampleId
+          );
+          formData.append("DesignStaffId", designStaffId);
+
+          console.log(
+            "Uploading 3dDesign with data:",
+            Object.fromEntries(formData.entries())
+          );
+
           await upload3dDesign(formData);
         });
-    
+
         await Promise.all(uploadPromises);
       } else {
-        console.log('Please select a Design');
+        console.log("Please select a Design");
         Notify.warning("Please select a Design");
       }
     }
   };
-  
 
   const handleDeleteImage = (index) => {
     setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
@@ -132,7 +133,7 @@ function DesignStaffPage() {
 
   const fetchOrder = async () => {
     try {
-      const response = await axios.get("http://localhost:5266/api/Orders");
+      const response = await axios.get("https://nbjewelrybe.azurewebsites.net/api/Orders");
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setOrderData(response.data);
     } catch (error) {
@@ -161,7 +162,7 @@ function DesignStaffPage() {
 
   const fetch3dDesign = async () => {
     try {
-      const response = await axios.get("http://localhost:5266/api/_3ddesign");
+      const response = await axios.get("https://nbjewelrybe.azurewebsites.net/api/_3ddesign");
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setDesignData(response.data);
     } catch (error) {
@@ -189,7 +190,7 @@ function DesignStaffPage() {
 
   const delete3dDesign = async () => {
     try {
-      await axios.delete("http://localhost:5266/api/_3ddesign", {
+      await axios.delete("https://nbjewelrybe.azurewebsites.net/api/_3ddesign", {
         params: {
           id: selectedDesignId,
         },
@@ -243,7 +244,7 @@ function DesignStaffPage() {
   const upload3dDesign = async (formData) => {
     try {
       const res = await axios.post(
-        `http://localhost:5266/api/_3ddesign/Upload`,
+        `https://nbjewelrybe.azurewebsites.net/api/_3ddesign/Upload`,
         formData,
         {
           headers: {
@@ -257,7 +258,7 @@ function DesignStaffPage() {
         prevDesigns.filter((design) => design._3dDesignId !== selectedDesignId)
       );
       console.log("All images have been uploaded.");
-      Notify.success("Designs uploaded successfully")
+      Notify.success("Designs uploaded successfully");
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -266,7 +267,7 @@ function DesignStaffPage() {
   const desginCompleted = async () => {
     try {
       const res = await axios.put(
-        `http://localhost:5266/api/Orders/change-status To Production?orderId=${orderId}`
+        `https://nbjewelrybe.azurewebsites.net/api/Orders/change-status To Production?orderId=${orderId}`
       );
       console.log(res);
       console.log("Upload successfully:", res.data);
@@ -375,6 +376,7 @@ function DesignStaffPage() {
                         <td onClick={() => showDetail(item)}>{item.status}</td>
                         <td>
                           <button
+                            className="salestaff-detail-button"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleToProduction(item.orderId);
@@ -390,60 +392,65 @@ function DesignStaffPage() {
               </div>
             )}
             {currentView === "upload3Ddeisgn" && (
-
-        <div className="designstaff-data-entry-container">
-          <h2 className="designstaff-data-entry-title">Enter Data</h2>
-          <form className="designstaff-data-entry-form">
-            <div className="form-group">
-              <label htmlFor="name">Name</label>
-              <input
-                type="text"
-                id="name"
-                className="designstaff-input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="productSampleList">ProductSample List</label>
-              <input
-                type="text"
-                id="productSampleList"
-                className="designstaff-input"
-                value={productSampleList}
-                onClick={handleProductSampleClick}
-                readOnly
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="imageUpload">Upload Image</label>
-              <input
-                type="file"
-                id="imageUpload"
-                className="designstaff-input"
-                onChange={handleImageChange}
-                multiple
-              />
-            </div>
-            <div className="uploaded-images">
-              {selectedImages.map((image, index) => (
-                <div key={index} className="uploaded-image">
-                  <img src={image} alt={`Uploaded ${index}`} />
-                  <button type="button" onClick={() => handleDeleteImage(index)}>X</button>
-                </div>
-              ))}
-            </div>
-            <button 
-              type="button"
-              className="designstaff-submit-button"
-              onClick={handleUploadImage}
-            >
-              Upload Image
-            </button>
-          </form>
-        </div>
-      )}
-
+              <div className="designstaff-data-entry-container">
+                <h2 className="designstaff-data-entry-title">Enter Data</h2>
+                <form className="designstaff-data-entry-form">
+                  <div className="form-group">
+                    <label htmlFor="name">Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      className="designstaff-input"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="productSampleList">
+                      ProductSample List
+                    </label>
+                    <input
+                      type="text"
+                      id="productSampleList"
+                      className="designstaff-input"
+                      value={productSampleList}
+                      onClick={handleProductSampleClick}
+                      readOnly
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="imageUpload">Upload Image</label>
+                    <input
+                      type="file"
+                      id="imageUpload"
+                      className="designstaff-input"
+                      onChange={handleImageChange}
+                      multiple
+                    />
+                  </div>
+                  <div className="uploaded-images">
+                    {selectedImages.map((image, index) => (
+                      <div key={index} className="uploaded-image">
+                        <img src={image} alt={`Uploaded ${index}`} />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteImage(index)}
+                        >
+                          X
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="designstaff-submit-button"
+                    onClick={handleUploadImage}
+                  >
+                    Upload Image
+                  </button>
+                </form>
+              </div>
+            )}
 
             {isPopupVisible && (
               <div className="popup-productlist-overlay">
@@ -610,7 +617,7 @@ function DesignStaffPage() {
                     <img
                       src={formImage}
                       alt="Form Preview"
-                      className="uploaded-image-preview"
+                      className="uploaded-image-preview-design"
                     />
                   </div>
                 )}

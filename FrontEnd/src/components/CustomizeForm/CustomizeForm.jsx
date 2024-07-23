@@ -21,7 +21,6 @@ function CustomizeForm() {
   const [shape, setShape] = useState("");
   const [gemstoneSize, setGemstoneSize] = useState("all");
   const [gemstoneType, setGemstoneType] = useState("");
-  const [gemstoneColor, setGemstoneColor] = useState("all");
   const [gemstoneClarity, setGemstoneClarity] = useState("all");
   const [gemstoneCaratMin, setGemstoneCaratMin] = useState("all");
   const [gemstoneCaratMax, setGemstoneCaratMax] = useState("all");
@@ -114,7 +113,7 @@ function CustomizeForm() {
       }
       try {
         const response = await fetch(
-          `http://localhost:5266/api/ProductSamples/${productId}`
+          `https://nbjewelrybe.azurewebsites.net/api/ProductSamples/${productId}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch product");
@@ -183,16 +182,6 @@ function CustomizeForm() {
     }`;
   };
 
-  const onClickSelectedGemstoneColor = (color) => {
-    setGemstoneColor(color);
-  };
-
-  const getClassNamesColor = (color) => {
-    return `grid-size-item ${
-      gemstoneColor === color ? "col-size-selected" : ""
-    }`;
-  };
-
   const onClickSelectedClarity = (clarity) => {
     setGemstoneClarity(clarity);
   };
@@ -233,10 +222,6 @@ function CustomizeForm() {
       query.push(`categoryName=${gemstoneType}`);
     }
 
-    if (gemstoneColor !== "all") {
-      query.push(`colors=${gemstoneColor}`);
-    }
-
     if (gemstoneClarity !== "all") {
       query.push(`clarity=${gemstoneClarity}`);
     }
@@ -249,7 +234,7 @@ function CustomizeForm() {
     const queryString = query.length ? `?${query.join("&")}` : "";
 
     try {
-      const url = `http://localhost:5266/api/Gemstones${
+      const url = `https://nbjewelrybe.azurewebsites.net/api/Gemstones${
         queryString ? "/Filter Gemstone" + queryString : ""
       }`;
       const response = await axios.get(url);
@@ -266,7 +251,6 @@ function CustomizeForm() {
     shape,
     gemstoneSize,
     gemstoneType,
-    gemstoneColor,
     gemstoneClarity,
     gemstoneCaratMin,
     gemstoneCaratMax,
@@ -320,8 +304,8 @@ function CustomizeForm() {
 
   const typeStyles = {
     Ring: ["solitaire", "three stone", "pave"],
-    Bracelet: ["chain", "pearl", "bar"],
-    Necklace: ["chain", "pearl", "station", "initial"],
+    Bracelet: ["chain", "Charm", "bar"],
+    Necklace: ["chain", "station", "initial"],
     Earrings: ["stud", "jacket", "ear spike"],
   };
   const typeQuantitys = {
@@ -346,7 +330,9 @@ function CustomizeForm() {
   const filteredMainGemstones = gemstones.filter((gemstone) => {
     // Filter out the primary gemstone and gemstones with non-null productSampleID or customizeRequestID
     return (
-      gemstone.productSampleId === null && gemstone.customizeRequestId === null
+      gemstone.productSampleId === null &&
+      gemstone.customizeRequestId === null &&
+      gemstone.categoryId !== "C005"
     );
   });
 
@@ -355,6 +341,7 @@ function CustomizeForm() {
     return (
       gemstone.gemstoneId !==
         (PrimaryGemstone ? PrimaryGemstone.gemstoneId : null) &&
+      gemstone.categoryId === "C005" &&
       gemstone.productSampleId === null &&
       gemstone.customizeRequestId === null
     );
@@ -418,7 +405,7 @@ function CustomizeForm() {
   const createCustomizeRequest = async (customize) => {
     try {
       const response = await axios.post(
-        "http://localhost:5266/api/CustomerRequests",
+        "https://nbjewelrybe.azurewebsites.net/api/CustomerRequests",
         customize
       );
 
@@ -482,7 +469,7 @@ function CustomizeForm() {
 
       // Xây dựng URL với query parameters
       const url = new URL(
-        "http://localhost:5266/api/ProductSamples/getrecommend"
+        "https://nbjewelrybe.azurewebsites.net/api/ProductSamples/getrecommend"
       );
       Object.keys(params).forEach(
         (key) =>
@@ -538,7 +525,7 @@ function CustomizeForm() {
                       disabled={!type}
                     >
                       <option value="" disabled selected>
-                        -- Chọn kiểu --
+                        -- Choose a Style --
                       </option>
                       {styles.map((styleOption) => {
                         return (
@@ -558,7 +545,7 @@ function CustomizeForm() {
                       onChange={(e) => setselectedGold(e.target.value)}
                     >
                       <option value="" disabled selected>
-                        -- Chọn kiểu --
+                        -- Choose a Gold Type --
                       </option>
                       {gold.map((gold) => (
                         <option key={gold.value} value={gold.value}>
@@ -578,7 +565,7 @@ function CustomizeForm() {
                       onChange={(e) => setselectedSize(e.target.value)}
                     >
                       <option value="" disabled selected>
-                        -- Chọn kiểu --
+                        -- Choose Size --
                       </option>
                       {Size.map((Size) => (
                         <option key={Size.value} value={Size.value}>
@@ -664,6 +651,42 @@ function CustomizeForm() {
                   </div>
                 </div>
 
+                <div className="gemstonetype">
+                  <h3 className="left-aligned-heading">TYPE</h3>
+                  <div className="grid-type-gemstone">
+                    <div
+                      id="diamond"
+                      className={getClassNamesType("diamond")}
+                      onClick={() => onClickSelectedGemstoneType("diamond")}
+                    >
+                      Diamond
+                    </div>
+                    <div
+                      id="emerald"
+                      className={getClassNamesType("emerald")}
+                      onClick={() => onClickSelectedGemstoneType("emerald")}
+                    >
+                      Emerald
+                    </div>
+                    <div
+                      id="ruby "
+                      className={getClassNamesType("ruby")}
+                      onClick={() => onClickSelectedGemstoneType("ruby")}
+                    >
+                      Ruby
+                    </div>
+                    <div
+                      id="sapphire  "
+                      className={getClassNamesType("sapphire")}
+                      onClick={() => onClickSelectedGemstoneType("sapphire")}
+                    >
+                      Sapphire
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="option-section">
                 <div className="quantity">
                   <h3 className="left-aligned-heading">SIZE</h3>
                   <div className="grid-size-carat">
@@ -743,112 +766,6 @@ function CustomizeForm() {
                       onClick={() => onClickSelectedGemstoneSize("9.0")}
                     >
                       9.0
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="option-section">
-                <div className="gemstonetype">
-                  <h3 className="left-aligned-heading">TYPE</h3>
-                  <div className="grid-type-gemstone">
-                    <div
-                      id="diamond"
-                      className={getClassNamesType("diamond")}
-                      onClick={() => onClickSelectedGemstoneType("diamond")}
-                    >
-                      Diamond
-                    </div>
-                    <div
-                      id="emerald"
-                      className={getClassNamesType("emerald")}
-                      onClick={() => onClickSelectedGemstoneType("emerald")}
-                    >
-                      Emerald
-                    </div>
-                    <div
-                      id="ruby "
-                      className={getClassNamesType("ruby")}
-                      onClick={() => onClickSelectedGemstoneType("ruby")}
-                    >
-                      Ruby
-                    </div>
-                    <div
-                      id="sapphire  "
-                      className={getClassNamesType("sapphire")}
-                      onClick={() => onClickSelectedGemstoneType("sapphire")}
-                    >
-                      Sapphire
-                    </div>
-                  </div>
-                </div>
-
-                <div className="color-selector">
-                  <h3 className="left-aligned-heading">COLORS</h3>
-                  <div className="grid-color-carat">
-                    <div
-                      id="all"
-                      className={getClassNamesColor("all")}
-                      onClick={() => onClickSelectedGemstoneColor("all")}
-                    >
-                      All
-                    </div>
-                    <div
-                      id="white"
-                      className={getClassNamesColor("white")}
-                      onClick={() => onClickSelectedGemstoneColor("white")}
-                    >
-                      White
-                    </div>
-                    <div
-                      id="yellow"
-                      className={getClassNamesColor("yellow")}
-                      onClick={() => onClickSelectedGemstoneColor("yellow")}
-                    >
-                      Yellow
-                    </div>
-                    <div
-                      id="blue"
-                      className={getClassNamesColor("blue")}
-                      onClick={() => onClickSelectedGemstoneColor("blue")}
-                    >
-                      Blue
-                    </div>
-                    <div
-                      id="pink"
-                      className={getClassNamesColor("pink")}
-                      onClick={() => onClickSelectedGemstoneColor("pink")}
-                    >
-                      Pink
-                    </div>
-                    <div
-                      id="red"
-                      className={getClassNamesColor("red")}
-                      onClick={() => onClickSelectedGemstoneColor("red")}
-                    >
-                      Red
-                    </div>
-                    <div
-                      id="green"
-                      className={getClassNamesColor("green")}
-                      onClick={() => onClickSelectedGemstoneColor("green")}
-                    >
-                      Green
-                    </div>
-
-                    <div
-                      id="orange"
-                      className={getClassNamesColor("orange")}
-                      onClick={() => onClickSelectedGemstoneColor("orange")}
-                    >
-                      Orange
-                    </div>
-                    <div
-                      id="purple"
-                      className={getClassNamesColor("purple")}
-                      onClick={() => onClickSelectedGemstoneColor("purple")}
-                    >
-                      Purple
                     </div>
                   </div>
                 </div>
@@ -966,7 +883,6 @@ function CustomizeForm() {
                         <th>ID</th>
                         <th>Name</th>
                         <th>Size</th>
-                        <th>Color</th>
                         <th>Clarity</th>
                         <th>Price</th>
                       </tr>
@@ -987,7 +903,6 @@ function CustomizeForm() {
                           <td>{gemstone.gemstoneId}</td>
                           <td>{gemstone.name}</td>
                           <td>{gemstone.size}</td>
-                          <td>{gemstone.color}</td>
                           <td>{gemstone.clarity}</td>
                           <td>{gemstone.price}</td>
                         </tr>
@@ -1024,7 +939,6 @@ function CustomizeForm() {
                             <th>ID</th>
                             <th>Name</th>
                             <th>Size</th>
-                            <th>Color</th>
                             <th>Clarity</th>
                             <th>Price</th>
                           </tr>
@@ -1046,7 +960,6 @@ function CustomizeForm() {
                               <td>{gemstone.gemstoneId}</td>
                               <td>{gemstone.name}</td>
                               <td>{gemstone.size}</td>
-                              <td>{gemstone.color}</td>
                               <td>{gemstone.clarity}</td>
                               <td>{gemstone.price}</td>
                             </tr>

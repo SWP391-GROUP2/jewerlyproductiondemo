@@ -73,11 +73,16 @@ function UserProfile() {
     navigate(`/customer/checkoutlast/${orderId}`); // Chuyển hướng đến trang chi tiết sản phẩm
   };
 
-  const handleRejectClick = (index) => {
+  const handleRejectClick = (customizeRequestId) => {
+    const approveSelectedRequest = requestData.find(
+      (request) => request.customizeRequestId === customizeRequestId
+    );
+    setapproveSelectedRequest(approveSelectedRequest);
     setRejectPopupOpen(true);
   };
 
-  const handleYesReject = () => {
+  const handleYesReject = (Id) => {
+    CancelRequest(Id);
     setRejectPopupOpen(false);
   };
 
@@ -112,10 +117,15 @@ function UserProfile() {
     ShippingPopupClose();
   };
 
+  const designs =
+    selectedItem && selectedItem
+      ? DesignData.filter((design) => design.orderId === selectedItem.orderId)
+      : [];
+
   const handleUpdateAddress = async (OrderAddress, shippingAddress) => {
     try {
       const res = await axios.put(
-        `http://localhost:5266/api/Orders/Update address`,
+        `https://nbjewelrybe.azurewebsites.net/api/Orders/Update address`,
         null,
         {
           params: {
@@ -130,10 +140,23 @@ function UserProfile() {
     }
   };
 
+  const CancelRequest = async (customizeRequestId) => {
+    try {
+      const res = await axios.put(
+        `https://nbjewelrybe.azurewebsites.net/api/CustomerRequests/cancel/${customizeRequestId}`
+      );
+      console.log("Response Data:", res.data);
+      Notify.success("Reject Request Successfully");
+    } catch (error) {
+      console.error("Error updating address:", error);
+      Notify.fail("Reject Request Failed !");
+    }
+  };
+
   const fetchRequests = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5266/api/CustomerRequests"
+        "https://nbjewelrybe.azurewebsites.net/api/CustomerRequests"
       );
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setRequestData(response.data);
@@ -170,7 +193,7 @@ function UserProfile() {
 
   const fetchOrder = async () => {
     try {
-      const response = await axios.get("http://localhost:5266/api/Orders");
+      const response = await axios.get("https://nbjewelrybe.azurewebsites.net/api/Orders");
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setOrderData(response.data);
     } catch (error) {
@@ -200,7 +223,7 @@ function UserProfile() {
 
   const fetch3dDesign = async () => {
     try {
-      const response = await axios.get("http://localhost:5266/api/_3ddesign");
+      const response = await axios.get("https://nbjewelrybe.azurewebsites.net/api/_3ddesign");
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setDesignData(response.data);
     } catch (error) {
@@ -228,7 +251,7 @@ function UserProfile() {
   const getProfile = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5266/api/Account/Get-Profile",
+        "https://nbjewelrybe.azurewebsites.net/api/Account/Get-Profile",
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -249,7 +272,7 @@ function UserProfile() {
   const updateUser = async (newUserPro) => {
     try {
       const res = await axios.put(
-        "http://localhost:5266/api/Account/Update-Profile",
+        "https://nbjewelrybe.azurewebsites.net/api/Account/Update-Profile",
         newUserPro,
         {
           headers: {
@@ -462,7 +485,7 @@ function UserProfile() {
                               className="reject-button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleRejectClick(index);
+                                handleRejectClick(row.customizeRequestId);
                               }}
                             >
                               Reject
@@ -609,7 +632,9 @@ function UserProfile() {
               <h2>Are you sure for reject ?</h2>
               <button
                 className="confirmation-popup_button"
-                onClick={handleYesReject}
+                onClick={() =>
+                  handleYesReject(approveSelectedRequest.customizeRequestId)
+                }
               >
                 Yes
               </button>
@@ -694,35 +719,53 @@ function UserProfile() {
                   <table className="designstaff-detail-table1">
                     <tbody>
                       <tr>
-                        <strong>ID :</strong>
+                        <td>
+                          <strong>ID :</strong>
+                        </td>
                         <td>{selectedItem.orderId}</td>
                       </tr>
                       <tr>
-                        <strong>Gold :</strong>
+                        <td>
+                          <strong>Gold :</strong>
+                        </td>
                         <td>{selectedItem.goldType}</td>
                       </tr>
                       <tr>
-                        <strong>Gold Weight :</strong>
+                        <td>
+                          {" "}
+                          <strong>Gold Weight :</strong>
+                        </td>
                         <td>{selectedItem.goldWeight}</td>
                       </tr>
                       <tr>
-                        <strong>Customer :</strong>
+                        <td>
+                          <strong>Customer :</strong>
+                        </td>
                         <td>{selectedItem.customerName}</td>
                       </tr>
                       <tr>
-                        <strong>Sales :</strong>
+                        <td>
+                          <strong>Sales :</strong>
+                        </td>
                         <td>{selectedItem?.saleStaffName ?? "N/A"}</td>
                       </tr>
                       <tr>
-                        <strong>Designer :</strong>
+                        <td>
+                          <strong>Designer :</strong>
+                        </td>
                         <td>{selectedItem?.designStaffName ?? "N/A"}</td>
                       </tr>
                       <tr>
-                        <strong>Production :</strong>
+                        <td>
+                          <strong>Production :</strong>
+                        </td>
                         <td>{selectedItem?.productionStaffName ?? "N/A"}</td>
                       </tr>
                       <tr>
-                        <strong>Manager :</strong>
+                        <td>
+                          {" "}
+                          <strong>Manager :</strong>
+                        </td>
                         <td>{selectedItem?.managerName ?? "N/A"}</td>
                       </tr>
 
@@ -742,14 +785,14 @@ function UserProfile() {
 
                   <table className="designstaff-detail-table2">
                     <tbody className="_3dDesign">
-                      {chunkArray(_3ddesigns, 2).map((row, rowIndex) => (
+                      {chunkArray(designs, 2).map((row, rowIndex) => (
                         <tr key={rowIndex}>
-                          {row.map((_3ddesign) => (
+                          {row.map((designs) => (
                             <td
-                              key={_3ddesign._3dDesignId}
+                              key={designs._3dDesignId}
                               className="ImageTable"
                             >
-                              <img src={_3ddesign.image} alt="image" />
+                              <img src={designs.image} alt="imag" />
                             </td>
                           ))}
                         </tr>

@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar/navbar";
 import Footer from "../../components/Footer/Footer";
 import "../CheckOutPage/CheckOutPage.css";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 const CheckOutLast = () => {
   const { orderId } = useParams();
@@ -21,7 +21,7 @@ const CheckOutLast = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await axios.get("http://localhost:5266/api/Orders");
+        const response = await axios.get("https://nbjewelrybe.azurewebsites.net/api/Orders");
         console.log("Response Data:", response.data);
         setOrderData(response.data);
       } catch (error) {
@@ -56,7 +56,7 @@ const CheckOutLast = () => {
       console.log("OrderID:", orderID);
 
       const response = await axios.post(
-        `http://localhost:5266/api/Payment/CreatePaymentUrl`,
+        `https://nbjewelrybe.azurewebsites.net/api/Payment/CreatePaymentUrl`,
         null,
         {
           params: {
@@ -91,7 +91,7 @@ const CheckOutLast = () => {
       console.log("OrderID:", orderID);
 
       const response = await axios.put(
-        "http://localhost:5266/api/Orders/change-status to Shipping",
+        "https://nbjewelrybe.azurewebsites.net/api/Orders/change-status to Shipping",
         null,
         {
           params: { orderID },
@@ -288,7 +288,9 @@ const CheckOutLast = () => {
                   <button onClick={closePopup}>Submit</button>
                 </div>
                 <div>
-                  <button onClick={closePopup}>Close</button>
+                  <Link to="/customer/profile">
+                    <button onClick={closePopup}>Close</button>
+                  </Link>
                 </div>
               </div>
             </div>

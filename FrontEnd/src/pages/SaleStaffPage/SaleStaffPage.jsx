@@ -12,6 +12,7 @@ function SaleStaffPage() {
   const [currentView, setCurrentView] = useState("wait_for_quotation");
   const [requestData, setRequestData] = useState([]);
   const [detailPopupData, setDetailPopupData] = useState(null);
+  const [detailUpdatePopupData, setDetailUpdatePopupData] = useState(null);
   const [goldWeight, setGoldWeight] = useState("");
   const [fetchDataFlag, setFetchDataFlag] = useState(false);
   const [hasFetchedOrders, setHasFetchedOrders] = useState(false);
@@ -24,7 +25,7 @@ function SaleStaffPage() {
   const fetchRequests = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5266/api/CustomerRequests"
+        "https://nbjewelrybe.azurewebsites.net/api/CustomerRequests"
       );
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setRequestData(response.data);
@@ -44,7 +45,7 @@ function SaleStaffPage() {
 
   const fetchOrder = async () => {
     try {
-      const response = await axios.get("http://localhost:5266/api/Orders");
+      const response = await axios.get("https://nbjewelrybe.azurewebsites.net/api/Orders");
       console.log("Response Data:", response.data); // Kiểm tra dữ liệu phản hồi
       setOrderData(response.data);
     } catch (error) {
@@ -78,7 +79,35 @@ function SaleStaffPage() {
       });
 
       const response = await axios.post(
-        `http://localhost:5266/api/SaleStaff/send-approved?${params.toString()}`,
+        `https://nbjewelrybe.azurewebsites.net/api/SaleStaff/send-approved?${params.toString()}`,
+        null,
+        { headers: headers }
+      );
+
+      console.log("Response:", response.data);
+      Notify.success("Send Quote Successfully");
+      return response.data;
+    } catch (error) {
+      console.error("Error sending quotation request:", error);
+      Notify.fail("Send Quote Failed !");
+      throw error;
+    }
+  };
+
+  const UpdateQuote = async (customizeRequestId, goldWeight) => {
+    try {
+      const headers = {
+        Authorization: `Bearer ${user.token}`, // Đảm bảo rằng Authorization header đúng định dạng
+      };
+
+      // Tạo chuỗi truy vấn từ params
+      const params = new URLSearchParams({
+        CustomizeRequestId: customizeRequestId,
+        GoldWeight: goldWeight,
+      });
+
+      const response = await axios.put(
+        `https://nbjewelrybe.azurewebsites.net/api/SaleStaff/update-approved?${params.toString()}`,
         null,
         { headers: headers }
       );
@@ -104,8 +133,24 @@ function SaleStaffPage() {
     handleCloseDetailPopup();
   };
 
+  const handleUpdateDetailPopup = async () => {
+    const { customizeRequestId } = detailUpdatePopupData;
+    try {
+      await UpdateQuote(customizeRequestId, goldWeight);
+      await fetchRequests();
+    } catch (error) {
+      console.error("Error updating request:", error);
+    }
+    handleCloseUpdatePopup();
+  };
+
   const handleShowDetailPopup = (rowData) => {
     setDetailPopupData(rowData);
+    setGoldWeight(rowData.goldweight);
+  };
+
+  const handleUpdateQuotePopup = (rowData) => {
+    setDetailUpdatePopupData(rowData);
     setGoldWeight(rowData.goldweight);
   };
 
@@ -132,7 +177,7 @@ function SaleStaffPage() {
   const changeStatusToDesigner = async (orderid, price) => {
     try {
       const response = await axios.put(
-        `http://localhost:5266/api/Orders/change-status%20To%20Designer?orderID=${orderid}&price=${price}`
+        `https://nbjewelrybe.azurewebsites.net/api/Orders/change-status%20To%20Designer?orderID=${orderid}&price=${price}`
       );
       console.log("Order status changed successfully:", response.data);
 
@@ -151,6 +196,11 @@ function SaleStaffPage() {
 
   const handleCloseDetailPopup = () => {
     setDetailPopupData(null);
+    setGoldWeight("");
+  };
+
+  const handleCloseUpdatePopup = () => {
+    setDetailUpdatePopupData(null);
     setGoldWeight("");
   };
 
@@ -178,7 +228,7 @@ function SaleStaffPage() {
 
   const rejectListData = requestData.filter(
     (data) =>
-      data.status === "Quotation Rejected" && data.saleStaffId === salestaffId
+      data.status === "Request Reject" && data.saleStaffId === salestaffId
   );
 
   if (error) return <div>Error: {error.message}</div>;
@@ -335,16 +385,12 @@ function SaleStaffPage() {
                 <table className="custom-table">
                   <thead>
                     <tr>
-                      <th>Gold ID</th>
+                      <th>customizeRequest ID</th>
                       <th>Gold Weight</th>
-                      <th>Customer ID</th>
-                      <th>Sales Staff ID</th>
-                      <th>Manager ID</th>
                       <th>Type</th>
                       <th>Style</th>
                       <th>Size</th>
                       <th>Quotation</th>
-                      <th>Quotation Description</th>
                       <th>Quantity</th>
                       <th>Status</th>
                       <th>Details</th>
@@ -353,24 +399,22 @@ function SaleStaffPage() {
                   <tbody>
                     {rejectListData.map((row, index) => (
                       <tr key={index}>
-                        <td>{row.goldId}</td>
+                        <td>{row.customizeRequestId}</td>
                         <td>{row.goldWeight}</td>
-                        <td>{row.customerId}</td>
-                        <td>{row.saleStaffId}</td>
-                        <td>{row.managerId}</td>
+
                         <td>{row.type}</td>
                         <td>{row.style}</td>
                         <td>{row.size}</td>
                         <td>{row.quotation}</td>
-                        <td>{row.quotationDes}</td>
+
                         <td>{row.quantity}</td>
                         <td>{row.status}</td>
                         <td>
                           <button
                             className="salestaff-detail-button"
-                            onClick={() => handleShowDetailPopup(row)}
+                            onClick={() => handleUpdateQuotePopup(row)}
                           >
-                            Details
+                            Update Quote
                           </button>
                         </td>
                       </tr>
@@ -482,17 +526,102 @@ function SaleStaffPage() {
             </table>
             <div>
               <button
-                className="detail-button"
+                className="detail-button-cl"
                 onClick={handleCloseDetailPopup}
               >
                 Close
               </button>
               {currentView === "wait_for_quotation" && (
                 <button
-                  className="detail-button"
+                  className="detail-button-sa"
                   onClick={handleSaveDetailPopup}
                 >
                   Save
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {detailUpdatePopupData && (
+        <div className="detail-popup">
+          <div className="detail-popup-content">
+            <h3>Detail Popup</h3>
+            <table className="detail-table">
+              <tbody>
+                <tr>
+                  <td>Customize Request ID:</td>
+                  <td>{detailUpdatePopupData.customizeRequestId}</td>
+                </tr>
+                <tr>
+                  <td>Customer Name:</td>
+                  <td>{detailUpdatePopupData.customerName}</td>
+                </tr>
+                <tr>
+                  <td>Gold Type:</td>
+                  <td>{detailUpdatePopupData.goldType}</td>
+                </tr>
+                <tr>
+                  <td>Gold Weight:</td>
+                  <td>
+                    {currentView === "Reject_list" ? (
+                      <input
+                        type="text"
+                        value={goldWeight}
+                        onChange={(e) => setGoldWeight(e.target.value)}
+                        className="detail-input"
+                      />
+                    ) : (
+                      detailUpdatePopupData.goldWeight
+                    )}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>Type:</td>
+                  <td>{detailUpdatePopupData.type}</td>
+                </tr>
+                <tr>
+                  <td>Style:</td>
+                  <td>{detailUpdatePopupData.style}</td>
+                </tr>
+                <tr>
+                  <td>Size:</td>
+                  <td>{detailUpdatePopupData.size}</td>
+                </tr>
+                <tr>
+                  <td>Quotation:</td>
+                  <td>{detailUpdatePopupData.quotation}</td>
+                </tr>
+
+                <tr>
+                  <td>Quotation Description:</td>
+                  <td>{detailUpdatePopupData.quotationDes}</td>
+                </tr>
+                <tr>
+                  <td>Quantity:</td>
+                  <td>{detailUpdatePopupData.quantity}</td>
+                </tr>
+                <tr>
+                  <td>Status:</td>
+                  <td>{detailUpdatePopupData.status}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div>
+              <button
+                className="detail-button-cl"
+                onClick={handleCloseUpdatePopup}
+              >
+                Close
+              </button>
+              {currentView === "Reject_list" && (
+                <button
+                  className="detail-button-sa"
+                  onClick={handleUpdateDetailPopup}
+                >
+                  Update
                 </button>
               )}
             </div>

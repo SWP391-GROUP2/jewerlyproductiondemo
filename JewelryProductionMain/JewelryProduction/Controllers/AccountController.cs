@@ -102,6 +102,11 @@ namespace JewelryProduction.Controllers
                     PhoneNumber = registerDTO.PhoneNumber
 
                 };
+
+                if (await _userManager.FindByEmailAsync(registerDTO.Email) is not null){
+                    return StatusCode(412, new { message = "Account already exists." });
+                }
+
                 var result = await _userManager.CreateAsync(user, registerDTO.Password);
                 if (result.Succeeded)
                 {
@@ -143,7 +148,14 @@ namespace JewelryProduction.Controllers
 
             if (!await _userManager.IsEmailConfirmedAsync(user))
             {
-                return StatusCode(StatusCodes.Status409Conflict, new { Message = "Email not confirmed" });
+                return Ok(new NewUserDTO
+                {
+                    isPasswordSet = true,
+                    Email = user.Email,
+                    Token = await _tokenService.CreateAccessToken(user),
+                    RefreshToken = _tokenService.CreateRefreshToken(),
+                    EmailVerify = user.EmailConfirmed
+                });
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDTO.Password, false);
@@ -161,7 +173,8 @@ namespace JewelryProduction.Controllers
                 isPasswordSet = isPasswordSet,
                 Email = user.Email,
                 Token = await _tokenService.CreateAccessToken(user),
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                EmailVerify = user.EmailConfirmed
             }
             );
         }
@@ -342,7 +355,7 @@ namespace JewelryProduction.Controllers
                 <h1>Reset Password</h1>
                 <p>Dear {email},</p>
                 <p>Click the link below to reset your password:</p>
-                <p><a href='http://localhost:3000/forgetpasswordverify?email={email}&token={encodedToken}'>Reset Password</a></p>
+                <p><a href='https://nbjewelryfe.azurewebsites.net/forgetpasswordverify?email={email}&token={encodedToken}'>Reset Password</a></p>
                 <p>If you did not request this code, please ignore this email.</p>
                 <p>Best regards,</p>
                 <p>Jewelry Production </p>
@@ -378,7 +391,5 @@ namespace JewelryProduction.Controllers
             }
             return Ok(new { UserId = userId });
         }
-
-
     }
 }

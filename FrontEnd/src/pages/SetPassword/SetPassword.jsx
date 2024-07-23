@@ -21,7 +21,7 @@ function SetPassword(){
     const SetPassword = async (newPass) => {
         try {
           const res = await axios.post(
-            "http://localhost:5266/api/GoogleAuth/google-setPassword",
+            "https://nbjewelrybe.azurewebsites.net/api/GoogleAuth/google-setPassword",
             newPass,
             {
               headers: {
@@ -77,7 +77,7 @@ function SetPassword(){
 
         return (
     <div className="change-password">
-        <h1>Change Password</h1>
+        <h1>Create Password</h1>
         <form onSubmit={updatePassword}>
             <input
                 type={showPassword ? "text" : "password"}
@@ -94,14 +94,18 @@ function SetPassword(){
                 required
             />
             <div className="toggle-password">
-                <input
-                className="bla"
-                    type="checkbox"
-                    checked={showPassword}
-                    onChange={() => setShowPassword(!showPassword)}
-                />
-                <label>Show Password</label>
-            </div>
+  <div className="checkbox-container">
+    <input
+      type="checkbox"
+      checked={showPassword}
+      onChange={() => setShowPassword(!showPassword)}
+    />
+    <span>Show Password</span>
+  </div>
+</div>
+
+
+
             <button type="submit">Save Password</button>
         </form>
     </div>

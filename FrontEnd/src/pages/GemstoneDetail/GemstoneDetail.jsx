@@ -29,7 +29,7 @@ function GemstoneDetail() {
   const fetchProduct = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5266/api/Gemstones/${gemstoneId}`
+        `https://nbjewelrybe.azurewebsites.net/api/Gemstones/${gemstoneId}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch product");
@@ -65,7 +65,6 @@ function GemstoneDetail() {
             </div>
 
             <p>Shape: {gemstone.shape}</p>
-            <p>Color: {gemstone.color}</p>
             <p>Cut: {gemstone.cut}</p>
             <p>Size: {gemstone.size}</p>
             <p>Clarity: {gemstone.clarity}</p>

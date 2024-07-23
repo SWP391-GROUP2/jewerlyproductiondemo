@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import "./Register.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation  } from "react-router-dom";
 import { MdDriveFileRenameOutline } from "react-icons/md";
 import { FaHome } from "react-icons/fa";
 import { IoReturnDownBack } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../../redux/apiRequest";
 import axios from "axios";
+import {
+  logOutStart,
+  logOutSuccess,
+  logOutFalsed,
+} from "../../redux/authSlice";
 
 function Register() {
   const [email, setEmail] = useState("");
@@ -15,8 +20,20 @@ function Register() {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const user = useSelector((State) => State.auth.register.currentUser);
+  const user = useSelector((State) => State.auth.register.currentUser) || location.state?.user;
+
+  const handleLogout = async () => {
+    dispatch(logOutStart());
+    try {
+      await axios.post("https://nbjewelrybe.azurewebsites.net/api/Account/logout");
+      dispatch(logOutSuccess());
+      navigate("/login");
+    } catch (err) {
+      dispatch(logOutFalsed());
+    }
+  };
 
   const sendOtp = async () => {
     try {
@@ -24,7 +41,7 @@ function Register() {
 
       // Gửi yêu cầu OTP với token đã lấy được
       const response = await axios.get(
-        "http://localhost:5266/api/Email/SendOTP",
+        "https://nbjewelrybe.azurewebsites.net/api/Email/SendOTP",
         {
           headers: {
             Authorization: `Bearer ${user.token}`, // Gắn token vào header Authorization
@@ -52,7 +69,7 @@ function Register() {
     } else {
       // Nếu user tồn tại, gửi OTP
       sendOtp();
-      navigate("/otp");
+      navigate("/otp", { state: { user } });
     }
   };
 
@@ -121,7 +138,7 @@ function Register() {
           )}
           <div className="register-link">
             <p>
-              You have an account ? <Link to="/login">Log In</Link>
+              You have an account ? <Link to="/login" onClick={handleLogout}>Log In</Link>
             </p>
           </div>
         </form>
