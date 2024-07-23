@@ -24,9 +24,6 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
-          
-      - name: Copy web.config to build directory
-        run: cp ./ClientApp/public/web.config ./ClientApp/build/web.config
 
       - name: Zip artifact for deployment
         run: |
